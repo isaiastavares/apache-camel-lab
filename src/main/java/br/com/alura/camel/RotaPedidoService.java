@@ -2,17 +2,18 @@ package br.com.alura.camel;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
+import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.http4.HttpMethods;
-import org.apache.camel.spring.SpringRouteBuilder;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
-public class RotaPedidos extends SpringRouteBuilder {
-
+@Service
+public class RotaPedidoService extends RouteBuilder {
+	
 	@Override
 	public void configure() throws Exception {
 		
-		errorHandler(deadLetterChannel("file:erro").
+//		errorHandler(deadLetterChannel("file:erro").
+		errorHandler(deadLetterChannel("activemq:queue:pedidos.DLQ").
 				logExhausted(true).
 					maximumRedeliveries(3).
 						redeliveryDelay(2000).
@@ -25,12 +26,13 @@ public class RotaPedidos extends SpringRouteBuilder {
 								}
 							}));
 		
-		from("file:pedidos?delay=5s&noop=true").
+//		from("file:pedidos?delay=5s&noop=true").
+		from("activemq:queue:pedidos").
 			routeId("rota-pedidos").
-			to("validator:pedido.xsd");
-//			multicast().
-//				to("direct:http").
-//				to("direct:soap");
+			to("validator:pedido.xsd").
+			multicast().
+				to("direct:http").
+				to("direct:soap");
 		
 		from("direct:http").
 			routeId("rota-http").
