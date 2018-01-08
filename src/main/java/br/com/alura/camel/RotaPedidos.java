@@ -12,10 +12,13 @@ public class RotaPedidos extends SpringRouteBuilder {
 	public void configure() throws Exception {
 		
 		from("file:pedidos?delay=5s&noop=true").
-		to("direct:http").
-		to("direct:soap");
+			routeId("rota-pedidos").
+			multicast().
+				to("direct:http").
+				to("direct:soap");
 		
 		from("direct:http").
+			routeId("rota-http").
 			setProperty("pedidoId", xpath("/pedido/id/text()")).
 		    setProperty("clienteId", xpath("/pedido/pagamento/email-titular/text()")).
 			split().
@@ -31,6 +34,8 @@ public class RotaPedidos extends SpringRouteBuilder {
 		to("http4://localhost:8080/webservices/ebook/item");
 		
 		from("direct:soap").
+			routeId("rota-soap").
+			setBody(constant("<evelope>teste</evelope>")).
 		to("mock:soap");
 	}
 	
