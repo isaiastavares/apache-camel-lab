@@ -9,4 +9,5 @@ public class ApacheCamelLabApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(ApacheCamelLabApplication.class, args);
 	}
+	
 }
